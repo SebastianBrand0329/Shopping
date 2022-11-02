@@ -40,7 +40,7 @@ namespace Shopping.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Shopping.Data.Entities.City", b =>
@@ -67,7 +67,7 @@ namespace Shopping.Migrations
                         .IsUnique()
                         .HasFilter("[StateId] IS NOT NULL");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
                 });
 
             modelBuilder.Entity("Shopping.Data.Entities.Country", b =>
@@ -88,7 +88,7 @@ namespace Shopping.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Countries");
+                    b.ToTable("Countries", (string)null);
                 });
 
             modelBuilder.Entity("Shopping.Data.Entities.State", b =>
@@ -115,7 +115,7 @@ namespace Shopping.Migrations
                         .IsUnique()
                         .HasFilter("[CountryId] IS NOT NULL");
 
-                    b.ToTable("States");
+                    b.ToTable("States", (string)null);
                 });
 
             modelBuilder.Entity("Shopping.Data.Entities.City", b =>
