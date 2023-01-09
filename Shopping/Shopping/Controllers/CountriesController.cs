@@ -65,6 +65,24 @@ namespace Shopping.Controllers
             return View(state);
         }
 
+        public async Task<IActionResult> DetailsCity(int? id)
+        {
+            if (id == null || _context.Countries == null)
+            {
+                return NotFound();
+            }
+
+            City city = await _context.Cities
+                .Include(c => c.State)
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (city == null)
+            {
+                return NotFound();
+            }
+
+            return View(city);
+        }
+
         // GET: Countries/Create
         [HttpGet]
         public IActionResult Create()
@@ -197,6 +215,70 @@ namespace Shopping.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> DeleteState(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            State state = await _context.States
+                .Include(s => s.Country)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (state == null)
+            {
+                return NotFound();
+            }
+
+            return View(state);
+        }
+
+        // POST: Countries/Delete/5
+        [HttpPost, ActionName("DeleteState")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteStateConfirmed(int id)
+        {
+            State state = await _context.States
+                .Include(s => s.Country)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            _context.States.Remove(state);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new {Id = state.Country.Id});
+        }
+
+        public async Task<IActionResult> DeleteCity(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var city = await _context.Cities
+                .Include(c => c.State)
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (city == null)
+            {
+                return NotFound();
+            }
+
+            return View(city);
+        }
+
+        // POST: Countries/Delete/5
+        [HttpPost, ActionName("DeleteCity")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCityConfirmed(int id)
+        {
+            var city = await _context.Cities
+                 .Include(c => c.State)
+                 .FirstOrDefaultAsync(c => c.Id == id);
+            _context.Cities.Remove(city);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(DetailsState), new { Id = city.State.Id });
         }
 
         // GET: Countries/Create
@@ -393,43 +475,78 @@ namespace Shopping.Controllers
             return View(model);
         }
 
-        // GET: Countries/Delete/5
-        public async Task<IActionResult> DeleteState(int? id)
+        public async Task<IActionResult> EditCity(int? id)
         {
             if (id == null || _context.States == null)
             {
                 return NotFound();
             }
 
-            var country = await _context.States
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (country == null)
+            City city = await _context.Cities
+                .Include(c => c.State)
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (city == null)
+            {
+                return NotFound();
+            }
+            CityViewModel model = new()
+            {
+                StateId = city.State.Id,
+                Id = city.Id,
+                Name = city.Name
+
+            };
+            return View(model);
+        }
+
+        // POST: Countries/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCity(int id, CityViewModel model)
+        {
+            if (id != model.Id)
             {
                 return NotFound();
             }
 
-            return View(country);
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    City city = new()
+                    {
+                        Id = model.Id,
+                        Name = model.Name
+                    };
+                    _context.Update(city);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(DetailsState), new { Id = model.StateId });
+                }
+                catch (DbUpdateException dbUpdateException)
+                {
+                    if (dbUpdateException.InnerException.Message.Contains("duplicate"))
+                    {
+                        ModelState.AddModelError(string.Empty, "Ya existe una Ciudad con el mismo nombre en este Departamento/Estado.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, dbUpdateException.InnerException.Message);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    ModelState.AddModelError(string.Empty, exception.Message);
+                }
+
+            }
+            return View(model);
         }
 
-        // POST: Countries/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedState(int id)
-        {
-            if (_context.Countries == null)
-            {
-                return Problem("Entity set 'DataContext.Countries'  is null.");
-            }
-            var country = await _context.Countries.FindAsync(id);
-            if (country != null)
-            {
-                _context.Countries.Remove(country);
-            }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
+        // GET: Countries/Delete/5
+      
 
     }
 }
